@@ -12,18 +12,21 @@
     <!-- Form to add a new ship -->
     <form id="add-ship-form">
         <input type="text" id="name" placeholder="Ship Name" required>
-        <input type="text" id="status" placeholder="Status" required>
-        <input type="text" id="cargo" placeholder="Cargo" required>
-        <input type="text" id="location" placeholder="Location" required>
-        <input type="text" id="eta" placeholder="ETA" required>
+        <input type="text" id="type" placeholder="Type" required>
+        <input type="text" id="flag" placeholder="Flag" required>
+        <input type="text" id="imo" placeholder="IMO Number" required>
+        <input type="number" id="gross-tonnage" placeholder="Gross Tonnage" required>
+        <input type="number" id="net-tonnage" placeholder="Net Tonnage" required>
+        <input type="text" id="quality" placeholder="Quality" required>
+        <input type="number" id="age" placeholder="Age" required>
+        <input type="text" id="dom" placeholder="DOM" required>
         <button type="submit">Add Ship</button>
     </form>
 
     <!-- List to display ships -->
-    <ul id="ships-list">
-        <!-- Ship data will be added here by JavaScript -->
-    </ul>
+    <ul id="ship-list"></ul>
 
+    <!-- Script for dashboard functionality -->
     <script src="scripts.js"></script>
 </body>
 </html>

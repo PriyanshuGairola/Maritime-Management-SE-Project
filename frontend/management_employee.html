@@ -8,7 +8,25 @@
 </head>
 <body>
     <h1>Management Employee Dashboard</h1>
-    <p>Manage ship details, approve readiness, and assign crew members here.</p>
+
+    <!-- Form to add a new ship -->
+    <form id="add-ship-form-me">
+        <input type="text" id="name-me" placeholder="Ship Name" required>
+        <input type="text" id="type-me" placeholder="Type" required>
+        <input type="text" id="flag-me" placeholder="Flag" required>
+        <input type="text" id="imo-me" placeholder="IMO Number" required>
+        <input type="number" id="gross-tonnage-me" placeholder="Gross Tonnage" required>
+        <input type="number" id="net-tonnage-me" placeholder="Net Tonnage" required>
+        <input type="text" id="quality-me" placeholder="Quality" required>
+        <input type="number" id="age-me" placeholder="Age" required>
+        <input type="text" id="dom-me" placeholder="DOM" required>
+        <button type="submit">Add Ship</button>
+    </form>
+
+    <!-- List to display ships in fleet -->
+    <ul id="fleet-ship-list"></ul>
+
+    <!-- Script for dashboard functionality -->
     <script src="scripts.js"></script>
 </body>
 </html>
