@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Member Dashboard</title>
+</head>
+<body>
+    <h1>Crew Member Dashboard</h1>
+
+    <!-- Display content based on crew member status -->
+    {% if status == 'on-shore' %}
+        <h2>On-Shore Dashboard</h2>
+
+        <!-- 4.2.1: Show Readiness Form -->
+        <form method="post" action="/submit_readiness">
+            <label for="readiness_date">Select Readiness Date:</label>
+            <input type="date" id="readiness_date" name="readiness_date" required>
+            <button type="submit">Show Readiness</button>
+        </form>
+
+        <!-- 4.2.2: Preferred Ships Section (Placeholder) -->
+        <h3>Preferred Ships with Expiring Contracts</h3>
+        <div id="preferred-ships">
+            {% if preferred_ships %}
+                <ul>
+                {% for ship in preferred_ships %}
+                    <li>{{ ship.name }} - {{ ship.contract_expiry_date }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No preferred ships available.</p>
+            {% endif %}
+        </div>
+        
+
+        <!-- 4.2.3: Ship Details and Crew Members (Placeholder) -->
+        <h3>Ship Details</h3>
+        <div id="ship-details">
+            {% if ship_details %}
+                <h4>{{ ship_details.name }}</h4>
+                <p>Type: {{ ship_details.type }}</p>
+                <!-- Add more details as needed -->
+                <h5>Crew Members:</h5>
+                <ul>
+                {% for member in ship_details.crew_members %}
+                    <li>{{ member.name }} - {{ member.rank }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>Select a ship to view its details and current crew members.</p>
+            {% endif %}
+        </div>
+        
+
+        <!-- 4.2.4: Chat with Crew Members and Management (Placeholder) -->
+        <h3>Chat</h3>
+        <div id="chat-box">
+            <!-- Placeholder content; Implement chat functionality later -->
+            <p>Chat functionality coming soon.</p>
+        </div>
+
+        <!-- 4.2.5: Document Download/Upload (Placeholder) -->
+        <h3>Documents</h3>
+        <button>Download Documents</button>
+        <button>Upload Documents</button>
+
+    {% elif status == 'sailing' %}
+        <h2>Sailing Dashboard</h2>
+
+        <!-- 4.3.1: Chat with Management Employees and Relievers (Placeholder) -->
+        <h3>Chat</h3>
+        <div id="chat-box">
+            <!-- Placeholder content; Implement chat functionality later -->
+            <p>Chat functionality coming soon.</p>
+        </div>
+
+        <!-- 4.3.2: View Contract Details (Placeholder) -->
+        <h3>Contract Details</h3>
+        <div id="contract-details">
+            <!-- Placeholder content -->
+            <p>View your contract details here.</p>
+        </div>
+
+    {% else %}
+        <p>Status unknown.</p>
+    {% endif %}
+</body>
+</html>

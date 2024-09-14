@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Employee Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Management Employee Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="#manage_fleet">Manage Fleet</a></li>
+                <li><a href="#assign_voyage">Assign Voyage</a></li>
+                <li><a href="#search_crew">Search Crew</a></li>
+                <li><a href="#handle_readiness">Handle Readiness Requests</a></li>
+                <li><a href="#chat">Chat</a></li>
+            </ul>
+        </nav>
+    </header>
+
+   
+
+    <!-- Manage Fleet Section -->
+    <section id="manage_fleet">
+        <h2>Manage Fleet</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Flag</th>
+                    <th>IMO Number</th>
+                    <th>Gross Tonnage</th>
+                    <th>Net Tonnage</th>
+                    <th>Quality</th>
+                    <th>Age</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ship in ships %}
+                <tr>
+                    <td>{{ ship.name }}</td>
+                    <td>{{ ship.type }}</td>
+                    <td>{{ ship.flag }}</td>
+                    <td>{{ ship.imo_number }}</td>
+                    <td>{{ ship.gross_tonnage }}</td>
+                    <td>{{ ship.net_tonnage }}</td>
+                    <td>{{ ship.quality }}</td>
+                    <td>{{ ship.age }}</td>
+                    <td>{{ ship.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Assign Voyage Form -->
+    <section id="assign_voyage">
+        <h2>Assign Voyage</h2>
+        <form action="/assign_voyage" method="post">
+            <label for="ship_id">Ship ID:</label>
+            <input type="number" id="ship_id" name="ship_id" required>
+            <label for="destination">Destination:</label>
+            <input type="text" id="destination" name="destination" required>
+            <label for="eta">ETA:</label>
+            <input type="text" id="eta" name="eta" required>
+            <label for="status">Status:</label>
+            <input type="text" id="status" name="status" required>
+            <button type="submit">Assign Voyage</button>
+        </form>
+    </section>
+
+    <!-- Manage Voyages Section -->
+    <section id="manage_voyages">
+        <h2>Manage Voyages</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ship ID</th>
+                    <th>Destination</th>
+                    <th>ETA</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for voyage in voyages %}
+                <tr>
+                    <td>{{ voyage.ship_id }}</td>
+                    <td>{{ voyage.destination }}</td>
+                    <td>{{ voyage.eta }}</td>
+                    <td>{{ voyage.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Search Crew Form -->
+    <section id="search_crew">
+        <h2>Search Crew</h2>
+        <form action="/search_crew" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name">
+            <label for="rank">Rank:</label>
+            <input type="text" id="rank" name="rank">
+            <label for="ship_type">Ship Type:</label>
+            <input type="text" id="ship_type" name="ship_type">
+            <button type="submit">Search Crew</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Rank</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for crew in crew_members %}
+                <tr>
+                    <td>{{ crew.name }}</td>
+                    <td>{{ crew.status }}</td>
+                    <td>{{ crew.rank }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Handle Readiness Requests Section -->
+    <section id="handle_readiness">
+        <h2>Handle Readiness Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Crew ID</th>
+                    <th>Readiness Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in readiness_requests %}
+                <tr>
+                    <td>{{ request.id }}</td>
+                    <td>{{ request.crew_id }}</td>
+                    <td>{{ request.readiness_date }}</td>
+                    <td>{{ request.status }}</td>
+                    <td>
+                        <form action="/handle_readiness_requests" method="post">
+                            <input type="hidden" name="request_id" value="{{ request.id }}">
+                            <button type="submit" name="action" value="approve">Approve</button>
+                            <button type="submit" name="action" value="decline">Decline</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Chat Section -->
+    <section id="chat">
+        <h2>Chat</h2>
+        <!-- Implement chat functionality here -->
+        <p>Chat feature to be implemented.</p>
+    </section>
+    
+    <footer>
+        <p>&copy; 2024 Maritime Management Portal</p>
+    </footer>
+</body>
+</html>

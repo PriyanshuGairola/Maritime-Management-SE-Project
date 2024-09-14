@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ship Dashboard</title>
+</head>
+<body>
+    <h1>Ship Dashboard</h1>
+    
+    <!-- Form to Update Ship's Status When Sailing -->
+    <section>
+        <h2>Update Sailing Status</h2>
+        <form method="post" action="/update_sailing_status">
+            <label for="area">Area:</label>
+            <input type="text" id="area" name="area" required>
+            <br>
+            <label for="destination">Destination:</label>
+            <input type="text" id="destination" name="destination" required>
+            <br>
+            <label for="speed">Speed (knots):</label>
+            <input type="number" id="speed" name="speed" step="0.1" required>
+            <br>
+            <button type="submit">Update Status</button>
+        </form>
+    </section>
+
+    <!-- Form to Update Ship's Status When Anchored -->
+    <section>
+        <h2>Update Anchored Status</h2>
+        <form method="post" action="/update_anchored_status">
+            <label for="loading">Loading:</label>
+            <input type="text" id="loading" name="loading" required>
+            <br>
+            <label for="discharging">Discharging:</label>
+            <input type="text" id="discharging" name="discharging" required>
+            <br>
+            <label for="inspections">Inspections:</label>
+            <input type="text" id="inspections" name="inspections" required>
+            <br>
+            <button type="submit">Update Status</button>
+        </form>
+    </section>
+
+    <!-- Upcoming Voyages/Ports Section -->
+    <section>
+        <h2>Upcoming Voyages</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Destination</th>
+                    <th>ETA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if voyages %}
+                    {% for voyage in voyages %}
+                        <tr>
+                            <td>{{ voyage.destination }}</td>
+                            <td>{{ voyage.eta }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="2">No upcoming voyages.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+</body>
+</html>

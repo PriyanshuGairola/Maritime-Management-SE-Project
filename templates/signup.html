@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Signup</title>
+</head>
+<body>
+    <div class="container">
+        <h2>Signup</h2>
+        <form action="{{ url_for('signup') }}" method="post">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="user_type">User Type:</label>
+                <select class="form-control" id="user_type" name="user_type" required>
+                    <option value="crew_member">Crew Member</option>
+                    <option value="ship_owner">Ship Owner</option>
+                    <option value="management_employee">Management Employee</option>
+                    <option value="ship">Ship</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-secondary">Signup</button>
+        </form>        
+        <a href="{{ url_for('login') }}">Already have an account? Login here</a>
+    </div>
+</body>
+</html>

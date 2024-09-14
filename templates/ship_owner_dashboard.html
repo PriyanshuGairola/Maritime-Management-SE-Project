@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ship Owner Dashboard</title>
+</head>
+<body>
+    <h1>Ship Owner Dashboard</h1>
+
+    <!-- Form to Add Ships -->
+    <h2>Add New Ship</h2>
+    <form method="post" action="/add_ship">
+        <label for="name">Ship Name:</label>
+        <input type="text" id="name" name="name" required><br>
+        <label for="type">Type:</label>
+        <input type="text" id="type" name="type" required><br>
+        <label for="flag">Flag:</label>
+        <input type="text" id="flag" name="flag"><br>
+        <label for="imo_number">IMO Number:</label>
+        <input type="text" id="imo_number" name="imo_number"><br>
+        <label for="gross_tonnage">Gross Tonnage:</label>
+        <input type="number" id="gross_tonnage" name="gross_tonnage"><br>
+        <label for="net_tonnage">Net Tonnage:</label>
+        <input type="number" id="net_tonnage" name="net_tonnage"><br>
+        <label for="quality">Quality:</label>
+        <input type="text" id="quality" name="quality"><br>
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age"><br>
+        <button type="submit">Add Ship</button>
+    </form>
+
+    <!-- Section to View Ship Status -->
+    <h2>Ship Status</h2>
+    <div id="ship-status">
+        {% if ships %}
+            <ul>
+                {% for ship in ships %}
+                    <li>
+                        <strong>{{ ship.name }}</strong><br>
+                        Type: {{ ship.type }}<br>
+                        Flag: {{ ship.flag }}<br>
+                        IMO Number: {{ ship.imo_number }}<br>
+                        Gross Tonnage: {{ ship.gross_tonnage }}<br>
+                        Net Tonnage: {{ ship.net_tonnage }}<br>
+                        Quality: {{ ship.quality }}<br>
+                        Age: {{ ship.age }}<br>
+                        <!-- Add additional status information as needed -->
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No ships available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Section to View Crew Members -->
+    <h2>Current Crew on Ships</h2>
+    <div id="crew-members">
+        {% if crew %}
+            <ul>
+                {% for member in crew %}
+                    <li>
+                        {{ member.name }} - {{ member.rank }}<br>
+                        Ship: {{ member.ship_name }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No crew members available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Chat Functionality -->
+    <h2>Chat with Management</h2>
+    <div id="chat-box">
+        <!-- Placeholder for chat functionality -->
+        <p>Chat functionality coming soon.</p>
+    </div>
+
+    <!-- Approval System -->
+    <h2>Approval System</h2>
+    <div id="approval-system">
+        <!-- Placeholder for approval requests -->
+        <p>Approval system coming soon.</p>
+    </div>
+
+</body>
+</html>
