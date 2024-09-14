@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ship Owner Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Ship Owner Dashboard</h1>
+
+    <!-- Form to add a new ship -->
+    <form id="add-ship-form">
+        <input type="text" id="name" placeholder="Ship Name" required>
+        <input type="text" id="status" placeholder="Status" required>
+        <input type="text" id="cargo" placeholder="Cargo" required>
+        <input type="text" id="location" placeholder="Location" required>
+        <input type="text" id="eta" placeholder="ETA" required>
+        <button type="submit">Add Ship</button>
+    </form>
+
+    <!-- List to display ships -->
+    <ul id="ships-list">
+        <!-- Ship data will be added here by JavaScript -->
+    </ul>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

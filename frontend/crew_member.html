@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crew Member Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Crew Member Dashboard</h1>
+    
+    <!-- Form to apply for readiness -->
+    <h2>Apply for Readiness</h2>
+    <form id="apply-readiness-form">
+        <input type="number" id="crew_member_id" placeholder="Crew Member ID" required>
+        <input type="number" id="ship_id" placeholder="Ship ID" required>
+        <input type="text" id="status" placeholder="Status" required>
+        <input type="date" id="application_date" required>
+        <button type="submit">Apply</button>
+    </form>
+
+    <!-- List to display readiness applications -->
+    <h2>Readiness Applications</h2>
+    <ul id="readiness-list"></ul>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
