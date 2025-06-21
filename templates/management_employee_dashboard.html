@@ -3,175 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/styles.css">
     <title>Management Employee Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Management Employee Dashboard</h1>
-        <nav>
-            <ul>
-                <li><a href="#manage_fleet">Manage Fleet</a></li>
-                <li><a href="#assign_voyage">Assign Voyage</a></li>
-                <li><a href="#search_crew">Search Crew</a></li>
-                <li><a href="#handle_readiness">Handle Readiness Requests</a></li>
-                <li><a href="#chat">Chat</a></li>
-            </ul>
-        </nav>
-    </header>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/management_employee_dashboard" class="nav-link active">Dashboard</a>
+                <a href="/login" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h2 class="page-title">Welcome, Management Employee!</h2>
+        </header>
 
-   
+        <div class="dashboard-content">
+            <section class="crew-management card">
+                <h3 class="section-title">Your Crew Members</h3>
+                <div class="crew-list">
+                    {% for member in crew %}
+                        <div class="crew-card">
+                            <div class="crew-info">
+                                <div class="crew-primary">
+                                    <h4 class="crew-name">{{ member.name }}</h4>
+                                    <span class="crew-rank">{{ member.rank }}</span>
+                                </div>
+                                <div class="crew-secondary">
+                                    <span class="crew-assignment">Assigned to: {{ member.ship_name }}</span>
+                                </div>
+                            </div>
+                            <div class="crew-actions">
+                                <button class="btn btn-secondary" onclick="document.getElementById('statusModal{{ member.id }}').style.display='block'">Update Status</button>
+                                <button class="btn btn-primary" onclick="document.getElementById('assignModal{{ member.id }}').style.display='block'">Assign to Ship</button>
+                                <button class="btn btn-secondary" onclick="document.getElementById('relieverModal{{ member.id }}').style.display='block'">Find Reliever</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
 
-    <!-- Manage Fleet Section -->
-    <section id="manage_fleet">
-        <h2>Manage Fleet</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Flag</th>
-                    <th>IMO Number</th>
-                    <th>Gross Tonnage</th>
-                    <th>Net Tonnage</th>
-                    <th>Quality</th>
-                    <th>Age</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ship in ships %}
-                <tr>
-                    <td>{{ ship.name }}</td>
-                    <td>{{ ship.type }}</td>
-                    <td>{{ ship.flag }}</td>
-                    <td>{{ ship.imo_number }}</td>
-                    <td>{{ ship.gross_tonnage }}</td>
-                    <td>{{ ship.net_tonnage }}</td>
-                    <td>{{ ship.quality }}</td>
-                    <td>{{ ship.age }}</td>
-                    <td>{{ ship.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
+        <!-- Modals -->
+        {% for member in crew %}
+            <!-- Status Modal -->
+            <div id="statusModal{{ member.id }}" class="modal">
+                <div class="modal-content card">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Update Status for {{ member.name }}</h3>
+                        <button class="modal-close" onclick="document.getElementById('statusModal{{ member.id }}').style.display='none'">&times;</button>
+                    </div>
+                    <form method="POST" class="form">
+                        <input type="hidden" name="crew_id" value="{{ member.id }}">
+                        <div class="form-group">
+                            <label for="status">Select Status</label>
+                            <select name="status" id="status" class="form-select" required>
+                                <option value="ON-SHORE">ON-SHORE</option>
+                                <option value="ABOARD">ABOARD</option>
+                            </select>
+                        </div>
+                        <button type="submit" name="update_status" class="btn btn-primary">Update Status</button>
+                    </form>
+                </div>
+            </div>
 
-    <!-- Assign Voyage Form -->
-    <section id="assign_voyage">
-        <h2>Assign Voyage</h2>
-        <form action="/assign_voyage" method="post">
-            <label for="ship_id">Ship ID:</label>
-            <input type="number" id="ship_id" name="ship_id" required>
-            <label for="destination">Destination:</label>
-            <input type="text" id="destination" name="destination" required>
-            <label for="eta">ETA:</label>
-            <input type="text" id="eta" name="eta" required>
-            <label for="status">Status:</label>
-            <input type="text" id="status" name="status" required>
-            <button type="submit">Assign Voyage</button>
-        </form>
-    </section>
+            <!-- Assign Modal -->
+            <div id="assignModal{{ member.id }}" class="modal">
+                <div class="modal-content card">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Assign {{ member.name }} to Ship</h3>
+                        <button class="modal-close" onclick="document.getElementById('assignModal{{ member.id }}').style.display='none'">&times;</button>
+                    </div>
+                    <form method="POST" class="form">
+                        <input type="hidden" name="crew_id" value="{{ member.id }}">
+                        <div class="form-group">
+                            <label for="ship_id">Select Ship</label>
+                            <select name="ship_id" id="ship_id" class="form-select" required>
+                                {% for ship in ships %}
+                                    <option value="{{ ship.id }}">{{ ship.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" name="assign_crew" class="btn btn-primary">Assign to Ship</button>
+                    </form>
+                </div>
+            </div>
 
-    <!-- Manage Voyages Section -->
-    <section id="manage_voyages">
-        <h2>Manage Voyages</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Ship ID</th>
-                    <th>Destination</th>
-                    <th>ETA</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for voyage in voyages %}
-                <tr>
-                    <td>{{ voyage.ship_id }}</td>
-                    <td>{{ voyage.destination }}</td>
-                    <td>{{ voyage.eta }}</td>
-                    <td>{{ voyage.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Search Crew Form -->
-    <section id="search_crew">
-        <h2>Search Crew</h2>
-        <form action="/search_crew" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name">
-            <label for="rank">Rank:</label>
-            <input type="text" id="rank" name="rank">
-            <label for="ship_type">Ship Type:</label>
-            <input type="text" id="ship_type" name="ship_type">
-            <button type="submit">Search Crew</button>
-        </form>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Rank</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for crew in crew_members %}
-                <tr>
-                    <td>{{ crew.name }}</td>
-                    <td>{{ crew.status }}</td>
-                    <td>{{ crew.rank }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Handle Readiness Requests Section -->
-    <section id="handle_readiness">
-        <h2>Handle Readiness Requests</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Request ID</th>
-                    <th>Crew ID</th>
-                    <th>Readiness Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for request in readiness_requests %}
-                <tr>
-                    <td>{{ request.id }}</td>
-                    <td>{{ request.crew_id }}</td>
-                    <td>{{ request.readiness_date }}</td>
-                    <td>{{ request.status }}</td>
-                    <td>
-                        <form action="/handle_readiness_requests" method="post">
-                            <input type="hidden" name="request_id" value="{{ request.id }}">
-                            <button type="submit" name="action" value="approve">Approve</button>
-                            <button type="submit" name="action" value="decline">Decline</button>
+            <!-- Reliever Modal -->
+            <div id="relieverModal{{ member.id }}" class="modal">
+                <div class="modal-content card">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Find Reliever for {{ member.name }}</h3>
+                        <button class="modal-close" onclick="document.getElementById('relieverModal{{ member.id }}').style.display='none'">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="current-info">
+                            <span class="rank-badge">Rank: {{ member.rank }}</span>
+                        </div>
+                        <form method="POST" class="form">
+                            <input type="hidden" name="crew_id" value="{{ member.id }}">
+                            <div class="form-group">
+                                <label for="reliever_rank">Select Reliever Rank</label>
+                                <select name="reliever_rank" id="reliever_rank" class="form-select" required>
+                                    <option value="{{ member.rank }}">{{ member.rank }}</option>
+                                </select>
+                            </div>
+                            <button type="submit" name="find_reliever" class="btn btn-primary">Find Reliever</button>
                         </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
 
-    <!-- Chat Section -->
-    <section id="chat">
-        <h2>Chat</h2>
-        <!-- Implement chat functionality here -->
-        <p>Chat feature to be implemented.</p>
-    </section>
-    
-    <footer>
-        <p>&copy; 2024 Maritime Management Portal</p>
-    </footer>
+                        {% if relievers %}
+                            <div class="relievers-list">
+                                <h4 class="subsection-title">Available Relievers</h4>
+                                <div class="reliever-cards">
+                                    {% for reliever in relievers %}
+                                        <div class="reliever-card">
+                                            <div class="reliever-info">
+                                                <span class="reliever-name">{{ reliever.name }}</span>
+                                                <span class="reliever-rank">{{ reliever.rank }}</span>
+                                                <span class="status-badge status-{{ reliever.status.lower() }}">{{ reliever.status }}</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <footer class="dashboard-footer">
+            <p>&copy; 2024 Maritime Management Portal</p>
+        </footer>
+    </div>
+
+    <script>
+        // Enhanced Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            var modals = document.querySelectorAll('.modal');
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = "none";
+                }
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,327 +1,645 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, flash, session
 import sqlite3
-
-# Initialize the Flask application
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Used to handle sessions securely
+app.secret_key = 'your_secret_key'  # Replace with your actual secret key
 
-# Create a helper function to connect to the SQLite database
 def get_db_connection():
     conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row  # To access columns by name
     return conn
 
-# Route for the home page
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-# Route for the login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
-        # Check if the user exists in the database
+        
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?',
-                            (username, password)).fetchone()
-        conn.close()
-
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+        user = cursor.fetchone()
+        
         if user:
-            # Store user details in session
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['user_type'] = user['user_type']
-
-            # Redirect to user-specific dashboard
-            if user['user_type'] == 'crew_member':
-                return redirect(url_for('crew_member_dashboard'))
-            elif user['user_type'] == 'ship_owner':
-                return redirect(url_for('ship_owner_dashboard'))
-            elif user['user_type'] == 'management_employee':
-                return redirect(url_for('management_employee_dashboard'))
-            elif user['user_type'] == 'ship':
-                return redirect(url_for('ship_dashboard'))
+            user_type = user['user_type']
+            session['username'] = username
+            session['user_type'] = user_type
+            
+            if user_type == 'owner':
+                return redirect('/owner_dashboard')
+            elif user_type == 'crew':
+                return redirect('/crew_dashboard')
+            elif user_type == 'management_employee':
+                return redirect('/management_employee_dashboard')
+            elif user_type == 'ship':
+                return redirect('/ship_dashboard')
         else:
-            flash('Invalid username or password. Please try again.', 'danger')
-
+            flash('Invalid username or password. Please try again.')
+        conn.close()
     return render_template('login.html')
 
-# Route for the signup page
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user_type = request.form['user_type']
-
-        # Insert the user data into the database
-        conn = get_db_connection()
-        conn.execute('INSERT INTO users (username, password, user_type) VALUES (?, ?, ?)',
-                     (username, password, user_type))
-        conn.commit()
+@app.route('/owner_dashboard')
+def owner_dashboard():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Fetch owner_id from users and owners tables
+    cursor.execute('''
+        SELECT owners.id FROM owners
+        JOIN users ON owners.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    owner = cursor.fetchone()
+    
+    if not owner:
+        flash('Owner not found.')
         conn.close()
-
-        flash('Signup successful! Please log in.', 'success')
-        return redirect(url_for('login'))
+        return redirect('/login')
     
-    return render_template('signup.html')
-#CREW_MEMBER
-@app.route('/crew_member_dashboard')
-def crew_member_dashboard():
-    crew_id = session.get('user_id')
-    print(f"Logged in crew member ID: {crew_id}")
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Fetch the crew member's status
-    cursor.execute('SELECT status FROM crew_members WHERE id = ?', (crew_id,))
-    crew_member = cursor.fetchone()
-    print(f"Crew member status: {crew_member}")
-
-    if crew_member:
-        crew_status = crew_member['status']
-    else:
-        crew_status = 'unknown'
-
-    # Fetch preferred ships
+    owner_id = owner['id']
+    
+    # Fetch ships owned by the owner
     cursor.execute('''
-        SELECT ps.ship_id, s.name, s.type
-        FROM preferred_ships ps
-        JOIN ships s ON ps.ship_id = s.id
-        WHERE ps.crew_id = ?
-    ''', (crew_id,))
-    preferred_ships = cursor.fetchall()
-    print(f"Preferred ships: {preferred_ships}")
-
-    # Fetch ship details
-    cursor.execute('''
-        SELECT s.id, s.name, s.type
-        FROM ships s
-        WHERE s.id IN (SELECT ps.ship_id FROM preferred_ships ps WHERE ps.crew_id = ?)
-    ''', (crew_id,))
-    ship_details = cursor.fetchone()
-    print(f"Ship details: {ship_details}")
-
-    if ship_details:
-        cursor.execute('''
-            SELECT cm.name, cm.status
-            FROM crew_members cm
-            JOIN crew_readiness cr ON cm.id = cr.crew_id
-            WHERE cr.ship_id = ?
-        ''', (ship_details['id'],))
-        ship_crew_members = cursor.fetchall()
-        print(f"Ship crew members: {ship_crew_members}")
-        ship_details['crew_members'] = ship_crew_members
-    else:
-        ship_details = None
-
-    conn.close()
-
-    return render_template(
-        'crew_member_dashboard.html',
-        status=crew_status,
-        preferred_ships=preferred_ships,
-        ship_details=ship_details
-    )
-
-@app.route('/submit_readiness', methods=['POST'])
-def submit_readiness():
-    readiness_date = request.form['readiness_date']
-    crew_id = session.get('user_id')  # Use the logged-in crew member's ID from the session
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Insert or update the readiness date in the database
-    cursor.execute('INSERT OR REPLACE INTO crew_readiness (crew_id, readiness_date, status) VALUES (?, ?, ?)',
-                   (crew_id, readiness_date, 'Pending'))  # Added default status
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('crew_member_dashboard'))
-@app.route('/add_ship', methods=['POST'])
-def add_ship():
-    name = request.form['name']
-    type = request.form['type']
-    flag = request.form['flag']
-    imo_number = request.form['imo_number']
-    gross_tonnage = request.form['gross_tonnage']
-    net_tonnage = request.form['net_tonnage']
-    quality = request.form['quality']
-    age = request.form['age']
-
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO ships (name, type, flag, imo_number, gross_tonnage, net_tonnage, quality, age)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (name, type, flag, imo_number, gross_tonnage, net_tonnage, quality, age))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('ship_owner_dashboard'))
-#SHIP_OWNER
-@app.route('/ship_owner_dashboard')
-def ship_owner_dashboard():
-    conn = get_db_connection()
-
-    # Fetch ship details
-    ships = conn.execute('SELECT * FROM ships').fetchall()
-
-    # Fetch crew members and their associated ships
-    crew = conn.execute('''
-        SELECT crew_members.name, crew_members.rank, ships.name AS ship_name
-        FROM crew_members
-        JOIN ships ON crew_members.ship_id = ships.id
-    ''').fetchall()
-
-    conn.close()
-
-    return render_template(
-        'ship_owner_dashboard.html',
-        ships=ships,
-        crew=crew
-    )
-
-
-#Management Employee
-
-@app.route('/manage_fleet')
-def manage_fleet():
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM ships')
+        SELECT id, name, age, tonnage, type, length, cabins FROM ships
+        WHERE owner_id = ?
+    ''', (owner_id,))
     ships = cursor.fetchall()
+    
+    # For each ship, fetch the latest voyage
+    ship_voyages = []
+    for ship in ships:
+        cursor.execute('''
+            SELECT destination, eta, status FROM voyages
+            WHERE ship_id = ?
+            ORDER BY eta DESC
+            LIMIT 1
+        ''', (ship['id'],))
+        voyage = cursor.fetchone()
+        ship_voyages.append({
+            'name': ship['name'],
+            'age': ship['age'],
+            'tonnage': ship['tonnage'],
+            'type': ship['type'],
+            'length': ship['length'],
+            'cabins': ship['cabins'],
+            'voyage_destination': voyage['destination'] if voyage else 'No Voyage',
+            'voyage_eta': voyage['eta'] if voyage else 'N/A',
+            'voyage_status': voyage['status'] if voyage else 'N/A'
+        })
+    
     conn.close()
     
-    return render_template('management_employee_dashboard.html', ships=ships)
-@app.route('/assign_voyage', methods=['POST'])
-def assign_voyage():
-    ship_id = request.form['ship_id']
-    destination = request.form['destination']
-    eta = request.form['eta']
-    status = request.form['status']
-
-    conn = sqlite3.connect('database.db')
+    return render_template('owner_dashboard.html', ships=ship_voyages)
+@app.route('/add_ship', methods=['POST'])
+#Add Ship Function
+def add_ship():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    # Fetch owner_id from users and owners tables
+    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO voyages (ship_id, destination, eta, status)
-        VALUES (?, ?, ?, ?)
-    ''', (ship_id, destination, eta, status))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('management_employee_dashboard'))
-@app.route('/search_crew', methods=['POST'])
-def search_crew():
-    name = request.form.get('name', '')
-    rank = request.form.get('rank', '')
-    ship_type = request.form.get('ship_type', '')
-
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    query = '''
-        SELECT * FROM crew_members
-        WHERE name LIKE ? AND rank LIKE ? AND ship_type LIKE ?
-    '''
-    cursor.execute(query, (f'%{name}%', f'%{rank}%', f'%{ship_type}%'))
-    crew_members = cursor.fetchall()
-    conn.close()
-
-    return render_template('management_employee_dashboard.html', crew_members=crew_members)
-@app.route('/handle_readiness_requests', methods=['POST'])
-def handle_readiness_requests():
-    request_id = request.form['request_id']
-    action = request.form['action']
-
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
+        SELECT owners.id FROM owners
+        JOIN users ON owners.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    owner = cursor.fetchone()
     
-    if action == 'approve':
-        cursor.execute('UPDATE crew_readiness SET status = "Approved" WHERE id = ?', (request_id,))
-    elif action == 'decline':
-        cursor.execute('UPDATE crew_readiness SET status = "Declined" WHERE id = ?', (request_id,))
+    if not owner:
+        flash('Owner not found.')
+        conn.close()
+        return redirect('/login')
     
-    conn.commit()
+    owner_id = owner['id']
+    
+    # Get form data
+    name = request.form['name']
+    age = request.form['age']
+    tonnage = request.form['tonnage']
+    ship_type = request.form['type']
+    length = request.form['length']
+    cabins = request.form['cabins']
+    password = request.form['password']
+    
+    try:
+        # Insert ship as a user for login
+        user_id = insert_user(conn, name, password, 'ship')
+        
+        if not user_id:
+            flash(f"Ship '{name}' already exists. Please choose a different name.")
+            conn.close()
+            return redirect('/owner_dashboard')
+        
+        # Insert ship into ships table
+        cursor.execute('''
+            INSERT INTO ships (name, owner_id, age, tonnage, type, length, cabins, password)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, owner_id, int(age), float(tonnage), ship_type, float(length), float(cabins), password))
+        
+        conn.commit()
+        flash(f"Ship '{name}' added successfully.")
+    except Exception as e:
+        flash(f"Error adding ship: {e}")
+    finally:
+        conn.close()
+    
+    return redirect('/owner_dashboard')
+
+# Placeholder routes for other dashboards
+@app.route('/crew_dashboard')
+def crew_dashboard():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT crew_members.rank, crew_members.status, ships.name as ship_name 
+        FROM crew_members
+        JOIN users ON crew_members.user_id = users.id
+        LEFT JOIN ships ON crew_members.ship_id = ships.id
+        WHERE users.username = ?
+    ''', (username,))
+    crew = cursor.fetchone()
     conn.close()
+    
+    return render_template('crew_dashboard.html', crew=crew)
 
-    return redirect(url_for('management_employee_dashboard'))
-@app.route('/chat')
-def chat():
-    # Implement chat functionality or integrate a chat service
-    return render_template('management_employee_dashboard.html')
 
-@app.route('/management_employee_dashboard')
+#management employee
+@app.route('/management_employee_dashboard', methods=['GET', 'POST'])
 def management_employee_dashboard():
-    return render_template('management_employee_dashboard.html')
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    # Fetch management employee id
+    cursor.execute('''
+        SELECT management_employees.id FROM management_employees
+        JOIN users ON management_employees.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    employee = cursor.fetchone()
+    
+    if not employee:
+        flash('Management Employee not found.')
+        conn.close()
+        return redirect('/login')
+    
+    employee_id = employee['id']
+    
+    # Fetch assigned crew members and ships
+    cursor.execute('''
+        SELECT crew_members.id, crew_members.name, crew_members.rank, ships.name as ship_name
+        FROM management_assignments
+        JOIN crew_members ON management_assignments.crew_id = crew_members.id
+        JOIN ships ON management_assignments.ship_id = ships.id
+        WHERE management_assignments.employee_id = ?
+    ''', (employee_id,))
+    assignments = cursor.fetchall()
 
+    # Handle form submissions for updating status, assigning crew, etc.
+    if request.method == 'POST':
+        # Update Crew Status (ON-SHORE/ABOARD)
+        if 'update_status' in request.form:
+            crew_id = request.form['crew_id']
+            status = request.form['status']
+            cursor.execute('''
+                UPDATE crew_members
+                SET status = ?
+                WHERE id = ?
+            ''', (status, crew_id))
+            conn.commit()
+            flash('Crew status updated.')
 
+        # Assign crew to ship
+        if 'assign_crew' in request.form:
+            crew_id = request.form['crew_id']
+            ship_id = request.form['ship_id']
+            cursor.execute('''
+                INSERT INTO management_assignments (employee_id, crew_id, ship_id)
+                VALUES (?, ?, ?)
+            ''', (employee_id, crew_id, ship_id))
+            conn.commit()
+            flash('Crew assigned to ship.')
 
+    conn.close()
 
-#SHIP 
-@app.route('/update_sailing_status', methods=['POST'])
-def update_sailing_status():
-    area = request.form['area']
-    destination = request.form['destination']
-    speed = request.form['speed']
-    ship_id = 1  # Placeholder; use the logged-in ship's ID
+    return render_template('management_employee_dashboard.html', crew=assignments)
+
+##management employee functions
+@app.route('/assign_crew_to_ship', methods=['POST'])
+def assign_crew_to_ship():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Update the ship's sailing status in the database
+    # Fetch management employee ID
     cursor.execute('''
-        UPDATE ships
-        SET area = ?, destination = ?, speed = ?, status = 'sailing'
-        WHERE id = ?
-    ''', (area, destination, speed, ship_id))
+        SELECT management_employees.id FROM management_employees
+        JOIN users ON management_employees.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    employee = cursor.fetchone()
+
+    if not employee:
+        flash('Management employee not found.')
+        conn.close()
+        return redirect('/login')
+
+    employee_id = employee['id']
+    
+    # Fetch crew and ship IDs from the form
+    crew_id = request.form['crew_id']
+    ship_id = request.form['ship_id']
+
+    # Assign the crew member to the ship
+    cursor.execute('''
+        INSERT INTO crew_assignments (crew_id, ship_id)
+        VALUES (?, ?)
+    ''', (crew_id, ship_id))
+
     conn.commit()
     conn.close()
 
-    flash('Sailing status updated successfully!', 'success')
-    return redirect(url_for('ship_dashboard'))
-@app.route('/update_anchored_status', methods=['POST'])
-def update_anchored_status():
-    loading = request.form['loading']
-    discharging = request.form['discharging']
-    inspections = request.form['inspections']
-    ship_id = 1  # Placeholder; use the logged-in ship's ID
+    flash('Crew member assigned to the ship.')
+    return redirect('/management_dashboard')
+@app.route('/update_crew_status', methods=['POST'])
+def update_crew_status():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Fetch management employee ID
+    cursor.execute('''
+        SELECT management_employees.id FROM management_employees
+        JOIN users ON management_employees.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    employee = cursor.fetchone()
+
+    if not employee:
+        flash('Management employee not found.')
+        conn.close()
+        return redirect('/login')
+    
+    crew_id = request.form['crew_id']
+    status = request.form['status']
+    
+    # Update the crew member's status (ON-SHORE/ABOARD)
+    cursor.execute('''
+        UPDATE crew_members
+        SET status = ?
+        WHERE id = ?
+    ''', (status, crew_id))
+
+    conn.commit()
+    conn.close()
+
+    flash(f'Crew member status updated to {status}.')
+    return redirect('/management_dashboard')
+@app.route('/view_crew_contracts')
+def view_crew_contracts():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Update the ship's anchored status in the database
+    # Fetch management employee ID
     cursor.execute('''
-        UPDATE ships
-        SET loading = ?, discharging = ?, inspections = ?, status = 'anchored'
-        WHERE id = ?
-    ''', (loading, discharging, inspections, ship_id))
+        SELECT management_employees.id FROM management_employees
+        JOIN users ON management_employees.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    employee = cursor.fetchone()
+
+    if not employee:
+        flash('Management employee not found.')
+        conn.close()
+        return redirect('/login')
+
+    # Fetch crew members assigned to the management employee
+    cursor.execute('''
+        SELECT crew_members.id, crew_members.name, crew_members.contract_expiration 
+        FROM crew_members
+        JOIN management_assignments ON crew_members.id = management_assignments.crew_id
+        WHERE management_assignments.employee_id = ?
+    ''', (employee['id'],))
+    crew_members = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('view_crew_contracts.html', crew_members=crew_members)
+@app.route('/find_relievers', methods=['POST'])
+def find_relievers():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+
+    rank = request.form['rank']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch management employee ID
+    cursor.execute('''
+        SELECT management_employees.id FROM management_employees
+        JOIN users ON management_employees.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    employee = cursor.fetchone()
+
+    if not employee:
+        flash('Management employee not found.')
+        conn.close()
+        return redirect('/login')
+
+    # Fetch crew members of the same rank
+    cursor.execute('''
+        SELECT crew_members.id, crew_members.name, crew_members.rank, crew_members.status
+        FROM crew_members
+        WHERE crew_members.rank = ? AND crew_members.status = 'ON-SHORE'
+    ''', (rank,))
+    relievers = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('find_relievers.html', relievers=relievers)
+
+
+#readiness
+@app.route('/apply_readiness', methods=['POST'])
+def apply_readiness():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Fetch crew member's id based on username
+    cursor.execute('''
+        SELECT crew_members.id FROM crew_members
+        JOIN users ON crew_members.user_id = users.id
+        WHERE users.username = ?
+    ''', (username,))
+    crew_member = cursor.fetchone()
+    
+    if not crew_member:
+        flash('Crew member not found.')
+        conn.close()
+        return redirect('/login')
+    
+    crew_id = crew_member['id']
+    readiness_date = request.form['readiness_date']  # This will be taken from the form input
+    
+    # Insert or update readiness status for the crew member
+    try:
+        cursor.execute('''
+            INSERT INTO crew_readiness (crew_id, readiness_date, status)
+            VALUES (?, ?, ?)
+            ON CONFLICT(crew_id) DO UPDATE SET
+            readiness_date = excluded.readiness_date,
+            status = 'Ready'
+        ''', (crew_id, readiness_date))
+        
+        conn.commit()
+        flash("Readiness status updated successfully.")
+    except Exception as e:
+        flash(f"Error updating readiness: {e}")
+    finally:
+        conn.close()
+    
+    return redirect('/crew_dashboard')
+#messaging between crew and management employee
+from datetime import datetime
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch crew and manager IDs
+    cursor.execute('''
+        SELECT crew_members.id AS crew_id, management_employees.id AS manager_id
+        FROM crew_members
+        JOIN users ON crew_members.user_id = users.id
+        JOIN management_assignments ON management_assignments.crew_id = crew_members.id
+        JOIN management_employees ON management_assignments.employee_id = management_employees.id
+        WHERE users.username = ?
+    ''', (username,))
+    ids = cursor.fetchone()
+
+    if not ids:
+        flash("No management employee assigned.")
+        conn.close()
+        return redirect('/crew_dashboard')
+
+    crew_id, manager_id = ids['crew_id'], ids['manager_id']
+    message = request.form['message']
+    timestamp = datetime.now()  # Current timestamp
+
+    # Insert message into messages table with timestamp
+    cursor.execute('''
+        INSERT INTO messages (sender_id, receiver_id, message, timestamp)
+        VALUES (?, ?, ?, ?)
+    ''', (crew_id, manager_id, message, timestamp))
+
     conn.commit()
     conn.close()
 
-    flash('Anchored status updated successfully!', 'success')
-    return redirect(url_for('ship_dashboard'))
+    flash("Message sent successfully.")
+    return redirect('/crew_dashboard')
+@app.route('/get_messages')
+def get_messages():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch crew_id and manager_id based on username
+    cursor.execute('''
+        SELECT crew_members.id AS crew_id, management_employees.id AS manager_id
+        FROM crew_members
+        JOIN users ON crew_members.user_id = users.id
+        JOIN management_assignments ON management_assignments.crew_id = crew_members.id
+        JOIN management_employees ON management_assignments.employee_id = management_employees.id
+        WHERE users.username = ?
+    ''', (username,))
+    ids = cursor.fetchone()
+
+    if not ids:
+        flash("No management employee assigned.")
+        conn.close()
+        return redirect('/crew_dashboard')
+
+    crew_id, manager_id = ids['crew_id'], ids['manager_id']
+
+    # Fetch messages between crew member and management employee
+    cursor.execute('''
+        SELECT sender_id, receiver_id, message, timestamp FROM messages
+        WHERE (sender_id = ? AND receiver_id = ?)
+           OR (sender_id = ? AND receiver_id = ?)
+        ORDER BY timestamp ASC
+    ''', (crew_id, manager_id, manager_id, crew_id))
+    messages = cursor.fetchall()
+
+    print("Fetched messages:", [dict(msg) for msg in messages])  # Debug print
+
+    conn.close()
+    return render_template('crew_dashboard.html', messages=messages)
+
+
 @app.route('/ship_dashboard')
 def ship_dashboard():
-    ship_id = 1  # Placeholder; use the logged-in ship's ID
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Fetch ship_id from users and ships tables based on username
+    cursor.execute('''
+        SELECT ships.id, ships.name FROM ships
+        JOIN users ON ships.name = users.username
+        WHERE users.username = ?
+    ''', (username,))
+    ship = cursor.fetchone()
+    
+    if not ship:
+        flash('Ship not found.')
+        conn.close()
+        return redirect('/login')
+    
+    ship_id = ship['id']
+    
+    # Fetch current voyage details for the ship
+    cursor.execute('''
+        SELECT destination, eta, status FROM voyages
+        WHERE ship_id = ?
+        ORDER BY eta DESC
+        LIMIT 1
+    ''', (ship_id,))
+    voyage = cursor.fetchone()
 
+    # Fetch current crew assigned to the ship
+    cursor.execute('''
+        SELECT crew_members.name, crew_members.rank, crew_members.status 
+        FROM crew_members
+        WHERE crew_members.ship_id = ?
+    ''', (ship_id,))
+    crew_members = cursor.fetchall()
+
+    # Fetch notifications for the ship
+    cursor.execute('''
+        SELECT message, timestamp FROM notifications
+        WHERE ship_id = ?
+        ORDER BY timestamp DESC
+    ''', (ship_id,))
+    notifications = cursor.fetchall()
+
+    # Prepare ship details to display
+    ship_details = {
+        'name': ship['name'],
+        'voyage_destination': voyage['destination'] if voyage else 'No Voyage',
+        'voyage_eta': voyage['eta'] if voyage else 'N/A',
+        'voyage_status': voyage['status'] if voyage else 'N/A',
+        'crew_members': crew_members,  # Add crew members to ship details
+        'notifications': notifications  # Add notifications to ship details
+    }
+    
+    conn.close()
+    
+    # Pass ship details to the template
+    return render_template('ship_dashboard.html', ship=ship_details)
+
+#update voyage
+@app.route('/update_voyage', methods=['GET', 'POST'])
+def update_voyage():
+    username = session.get('username')
+    if not username:
+        return redirect('/login')
+    
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Fetch upcoming voyages/ports assigned by management employees
+    # Fetch ship_id based on the username
     cursor.execute('''
-        SELECT destination, eta FROM voyages
-        WHERE ship_id = ? AND status = 'upcoming'
-    ''', (ship_id,))
-    voyages = cursor.fetchall()
-    conn.close()
+        SELECT ships.id, ships.name FROM ships
+        JOIN users ON ships.name = users.username
+        WHERE users.username = ?
+    ''', (username,))
+    ship = cursor.fetchone()
 
-    return render_template('ship_dashboard.html', voyages=voyages)
+    if not ship:
+        flash('Ship not found.')
+        conn.close()
+        return redirect('/login')
 
+    ship_id = ship['id']
+
+    if request.method == 'POST':
+        # Get form data
+        destination = request.form['destination']
+        eta = request.form['eta']
+        status = request.form['status']
+        
+        # Check if there's already a voyage, if so, update it
+        cursor.execute('''
+            SELECT * FROM voyages WHERE ship_id = ?
+        ''', (ship_id,))
+        existing_voyage = cursor.fetchone()
+
+        if existing_voyage:
+            cursor.execute('''
+                UPDATE voyages
+                SET destination = ?, eta = ?, status = ?
+                WHERE ship_id = ?
+            ''', (destination, eta, status, ship_id))
+        else:
+            # If no existing voyage, insert a new one
+            cursor.execute('''
+                INSERT INTO voyages (ship_id, destination, eta, status)
+                VALUES (?, ?, ?, ?)
+            ''', (ship_id, destination, eta, status))
+
+        # Insert a notification for the ship
+        notification_message = f"New voyage assigned: {destination} - ETA: {eta}"
+        cursor.execute('''
+            INSERT INTO notifications (ship_id, message)
+            VALUES (?, ?)
+        ''', (ship_id, notification_message))
+
+        conn.commit()
+        flash("Voyage details updated successfully and notification sent.")
+        conn.close()
+        return redirect('/ship_dashboard')
+
+    # If GET request, render the voyage update form
+    return render_template('update_voyage.html', ship_name=ship['name'])
 
 if __name__ == '__main__':
     app.run(debug=True)

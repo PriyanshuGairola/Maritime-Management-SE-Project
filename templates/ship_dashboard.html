@@ -3,70 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ship Dashboard</title>
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>{{ ship.name }} - Ship Dashboard</title>
 </head>
 <body>
-    <h1>Ship Dashboard</h1>
-    
-    <!-- Form to Update Ship's Status When Sailing -->
-    <section>
-        <h2>Update Sailing Status</h2>
-        <form method="post" action="/update_sailing_status">
-            <label for="area">Area:</label>
-            <input type="text" id="area" name="area" required>
-            <br>
-            <label for="destination">Destination:</label>
-            <input type="text" id="destination" name="destination" required>
-            <br>
-            <label for="speed">Speed (knots):</label>
-            <input type="number" id="speed" name="speed" step="0.1" required>
-            <br>
-            <button type="submit">Update Status</button>
-        </form>
-    </section>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/ship_dashboard" class="nav-link active">Dashboard</a>
+                <a href="/login" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="page-title">{{ ship.name }} - Ship Dashboard</h1>
+        </header>
 
-    <!-- Form to Update Ship's Status When Anchored -->
-    <section>
-        <h2>Update Anchored Status</h2>
-        <form method="post" action="/update_anchored_status">
-            <label for="loading">Loading:</label>
-            <input type="text" id="loading" name="loading" required>
-            <br>
-            <label for="discharging">Discharging:</label>
-            <input type="text" id="discharging" name="discharging" required>
-            <br>
-            <label for="inspections">Inspections:</label>
-            <input type="text" id="inspections" name="inspections" required>
-            <br>
-            <button type="submit">Update Status</button>
-        </form>
-    </section>
+        <div class="dashboard-content">
+            <section class="voyage-section card">
+                <h2 class="section-title">Voyage Details</h2>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Destination</th>
+                                <th>ETA</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ ship.voyage_destination }}</td>
+                                <td>{{ ship.voyage_eta }}</td>
+                                <td><span class="status-badge status-{{ ship.voyage_status.lower() }}">{{ ship.voyage_status }}</span></td>
+                                <td><a href="/update_voyage" class="btn btn-secondary">Update Voyage</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-    <!-- Upcoming Voyages/Ports Section -->
-    <section>
-        <h2>Upcoming Voyages</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Destination</th>
-                    <th>ETA</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if voyages %}
-                    {% for voyage in voyages %}
-                        <tr>
-                            <td>{{ voyage.destination }}</td>
-                            <td>{{ voyage.eta }}</td>
-                        </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="2">No upcoming voyages.</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </section>
+            <div class="dashboard-grid">
+                <section class="notifications-section card">
+                    <h3 class="section-title">Notifications</h3>
+                    <div class="notification-list">
+                        {% if notifications %}
+                            {% for notification in notifications %}
+                                <div class="notification-item">
+                                    <div class="notification-content">{{ notification.message }}</div>
+                                    <div class="notification-time">{{ notification.timestamp }}</div>
+                                </div>
+                            {% else %}
+                                <div class="notification-item empty">No new notifications.</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="notification-item empty">No notifications yet.</div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="crew-section card">
+                    <h3 class="section-title">Current Crew Members</h3>
+                    <div class="crew-list">
+                        {% for crew in ship.crew_members %}
+                            <div class="crew-card">
+                                <div class="crew-info">
+                                    <div class="crew-name">{{ crew.name }}</div>
+                                    <div class="crew-rank">{{ crew.rank }}</div>
+                                    <span class="status-badge status-{{ crew.status.lower() }}">{{ crew.status }}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="crew-card empty">
+                                <p>No crew members assigned to this ship.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

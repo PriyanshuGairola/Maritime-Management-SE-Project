@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>Owner Dashboard</title>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/owner_dashboard" class="nav-link active">Dashboard</a>
+                <a href="/login" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h2 class="page-title">Welcome, Owner!</h2>
+        </header>
+
+        <div class="dashboard-content">
+            <section class="add-ship-section card">
+                <h3 class="section-title">Add New Ship</h3>
+                <form method="post" action="/add_ship" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Ship Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tonnage">Tonnage</label>
+                            <input type="number" step="0.01" id="tonnage" name="tonnage" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <input type="text" id="type" name="type" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="length">Length</label>
+                            <input type="number" step="0.01" id="length" name="length" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cabins">Cabins</label>
+                            <input type="number" step="0.01" id="cabins" name="cabins" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Ship Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Add Ship</button>
+                </form>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for message in messages %}
+                                <div class="flash-message">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </section>
+            
+            <section class="ships-section">
+                <h3 class="section-title">Your Ships</h3>
+                <div class="ships-grid">
+                    {% for ship in ships %}
+                        <div class="ship-card card">
+                            <div class="ship-header">
+                                <h3 class="ship-name">{{ ship.name }}</h3>
+                            </div>
+                            <div class="ship-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Age:</span>
+                                    <span class="detail-value">{{ ship.age }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Tonnage:</span>
+                                    <span class="detail-value">{{ ship.tonnage }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Type:</span>
+                                    <span class="detail-value">{{ ship.type }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Length:</span>
+                                    <span class="detail-value">{{ ship.length }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Cabins:</span>
+                                    <span class="detail-value">{{ ship.cabins }}</span>
+                                </div>
+                            </div>
+                            <div class="voyage-details">
+                                <h4 class="subsection-title">Latest Voyage</h4>
+                                <div class="detail-item">
+                                    <span class="detail-label">Destination:</span>
+                                    <span class="detail-value">{{ ship.voyage_destination }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">ETA:</span>
+                                    <span class="detail-value">{{ ship.voyage_eta }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Status:</span>
+                                    <span class="detail-value status">{{ ship.voyage_status }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

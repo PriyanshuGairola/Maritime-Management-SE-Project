@@ -1,0 +1,450 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    background-color: #E6F3FF;
+    color: #333;
+    min-height: 100vh;
+}
+
+/* Navigation Styles */
+.main-nav {
+    background-color: #003366;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    background-color: #008080;
+}
+
+/* Container Layouts */
+.container,
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: calc(100vh - 64px); /* Accounting for nav */
+}
+
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Grid Layouts */
+.dashboard-grid,
+.message-grid,
+.ships-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Card Styles */
+.card {
+    background: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 51, 102, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.login-card {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+/* Typography */
+.page-title {
+    color: #003366;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.section-title {
+    color: #003366;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.subsection-title {
+    color: #003366;
+    font-size: 1.25rem;
+    margin: 1rem 0;
+    font-weight: 500;
+}
+
+/* Form Styles */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+label {
+    color: #003366;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+input,
+select,
+textarea {
+    padding: 0.75rem;
+    border: 2px solid #E6F3FF;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #008080;
+}
+
+textarea.message-input {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #003366;
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background-color: #004080;
+}
+
+.btn-secondary {
+    background-color: #E6F3FF;
+    color: #003366;
+}
+
+.btn-secondary:hover {
+    background-color: #cce4ff;
+}
+
+/* Table Styles */
+.table-responsive {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #E6F3FF;
+}
+
+.data-table th {
+    background-color: #f8fafc;
+    color: #003366;
+    font-weight: 500;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-scheduled {
+    background-color: #E6F3FF;
+    color: #003366;
+}
+
+.status-in_progress {
+    background-color: #008080;
+    color: #FFFFFF;
+}
+
+.status-completed {
+    background-color: #4CAF50;
+    color: #FFFFFF;
+}
+
+.status-delayed {
+    background-color: #FFA726;
+    color: #FFFFFF;
+}
+
+/* Ship Card Styles */
+.ship-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ship-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #E6F3FF;
+}
+
+.ship-name {
+    color: #003366;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.ship-details,
+.voyage-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Detail Items */
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.detail-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #003366;
+    font-weight: 500;
+}
+
+/* Notification Styles */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification-item {
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    border-left: 4px solid #008080;
+}
+
+.notification-time {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Message Styles */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.message-card {
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: #f8fafc;
+    max-width: 80%;
+}
+
+.message-sent {
+    align-self: flex-end;
+    background-color: #003366;
+    color: #FFFFFF;
+}
+
+.message-received {
+    align-self: flex-start;
+    background-color: #f8fafc;
+    border-left: 4px solid #008080;
+}
+
+.message-sender {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.message-timestamp {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Crew Styles */
+.crew-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.crew-card {
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    border-left: 4px solid #008080;
+}
+
+.crew-name {
+    font-weight: 600;
+    color: #003366;
+}
+
+.crew-rank {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 300px;
+}
+
+.flash-message {
+    background-color: #008080;
+    color: #FFFFFF;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container,
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .dashboard-grid,
+    .message-grid,
+    .ships-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .message-card {
+        max-width: 100%;
+    }
+    
+    .flash-messages {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        max-width: none;
+    }
+}

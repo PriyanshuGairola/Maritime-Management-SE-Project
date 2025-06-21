@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>Crew Dashboard</title>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="/crew_dashboard" class="nav-link active">Dashboard</a>
+                <a href="/login" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1 class="page-title">Crew Dashboard</h1>
+        </header>
+
+        <div class="dashboard-content">
+            <section class="crew-profile card">
+                <div class="profile-header">
+                    <h2 class="section-title">Welcome, {{ crew['name'] }}</h2>
+                </div>
+                <div class="profile-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Rank:</span>
+                        <span class="detail-value">{{ crew['rank'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="status-badge status-{{ crew['status'].lower() }}">{{ crew['status'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Assigned Ship:</span>
+                        <span class="detail-value">{{ crew['ship_name'] if crew['ship_name'] else 'None' }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="message-grid">
+                <section class="message-compose card">
+                    <h3 class="section-title">Send Message to Management</h3>
+                    <form action="/send_message" method="POST" class="form message-form">
+                        <div class="form-group">
+                            <textarea 
+                                name="message" 
+                                rows="5" 
+                                placeholder="Write your message here..." 
+                                class="message-input"
+                                required
+                            ></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </section>
+
+                <section class="messages-section card">
+                    <h3 class="section-title">Message History</h3>
+                    <div class="messages-container">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="message-card {{ message['sender_id'] == crew_id and 'message-sent' or 'message-received' }}">
+                                    <div class="message-sender">
+                                        {{ message['sender_id'] == crew_id and 'You' or 'Management' }}
+                                    </div>
+                                    <div class="message-content">
+                                        {{ message['message'] }}
+                                    </div>
+                                    <div class="message-timestamp">
+                                        <!-- Add timestamp if available -->
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <p>No messages yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+</body>
+</html>
